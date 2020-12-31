@@ -1,1 +1,0 @@
-If you already have a working workspace for FOS import it to start working.
