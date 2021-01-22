@@ -34,13 +34,10 @@ void _main(void)
 		cprintf("a) Ascending\n") ;
 		cprintf("b) Descending\n") ;
 		cprintf("c) Semi random\n");
-		do
-		{
-			cprintf("Select: ") ;
-			Chose = getchar() ;
-			cputchar(Chose);
-			cputchar('\n');
-		} while (Chose != 'a' && Chose != 'b' && Chose != 'c');
+		cprintf("Select: ") ;
+		Chose = getchar() ;
+		cputchar(Chose);
+		cputchar('\n');
 
 		//2012: lock the interrupt
 		sys_enable_interrupt();

@@ -185,36 +185,45 @@ int free_share_object(uint32 sharedObjectID)
 
 int createSharedObject(int32 ownerID, char* shareName, uint32 size, uint8 isWritable, void* virtual_address)
 {
-	//TODO: [PROJECT 2020 - [6] Shared Variables: Creation] createSharedObject() [Kernel Side]
-	// your code is here, remove the panic and write your code
-	//panic("createSharedObject() is not implemented yet...!!");
-	//cprintf("===>BEFORE: # of free frames = %d\n", calculate_free_frames());
+
 	struct Env* myenv = curenv; //The calling environment
-	// This function should create the shared object at the given virtual address with the given size
-	// and return the ShareObjectID
-	// RETURN:
-	//	a) ShareObjectID (its index in "shares" array) if success
-	//	b) E_SHARED_MEM_EXISTS if the shared object already exists
-	//	c) E_NO_SHARE if the number of shared objects reaches max "MAX_SHARES"
 
-	// Steps:
-	//	1) Allocate a new share object (use allocate_share_object())
-	//	2) Allocate the required space in the physical memory on a PAGE boundary
-	//	3) Map the allocated space on the given "virtual_address" on the current environment "myenv": object OWNER,
-	//	   with writable permissions
-	//	4) Initialize the share object with the following:
-	//		a) Set the data members of the object with suitable values (ownerID, name, size, ...)
-	//		b) Set references to 1 (as there's 1 user environment that use the object now - OWNER)
-	//		c) Store the object's isWritable flag (0:ReadOnly, 1:Writable) for later use by getSharedObject()
-	//		d) Add all allocated frames to "frames_storage" of this shared object to keep track of them for later use
-	//		(use: add_frame_to_storage())
-	// 	5) 	If succeed: return the ID of the shared object (i.e. its index in the "shares" array)
-	//		Else, return suitable error
+		// This function should create the shared object at the given virtual address with the given size
+		// and return the ShareObjectID
+		// RETURN:
+		//	a) ShareObjectID (its index in "shares" array) if success
+		//	b) E_SHARED_MEM_EXISTS if the shared object already exists
+		//	c) E_NO_SHARE if the number of shared objects reaches max "MAX_SHARES"
 
-	panic("This function is not implemented yet\n");
+		if(get_share_object_ID(ownerID, shareName) != E_SHARED_MEM_NOT_EXISTS)
+			return E_SHARED_MEM_EXISTS;
+		struct Share *NewShareObj;
+		int shareObjectID;
+		shareObjectID = allocate_share_object(&NewShareObj);
+		if(shareObjectID == E_NO_SHARE)
+			return E_NO_SHARE;
 
-	//change this return according to your code
-	return 0;
+		else{
+
+			uint32 required_num_pages = size/PAGE_SIZE + (size % PAGE_SIZE != 0);
+			virtual_address = ROUNDDOWN(virtual_address,PAGE_SIZE);
+			struct Frame_Info *ptr_frameInfo;
+			for(int index = 0, va = (uint32)virtual_address; index < required_num_pages; index++, va += PAGE_SIZE){
+
+				int check = allocate_frame(&ptr_frameInfo);
+
+				map_frame(curenv->env_page_directory, ptr_frameInfo, (void*)va, PERM_USER|PERM_PRESENT|PERM_WRITEABLE);
+
+				add_frame_to_storage(NewShareObj->framesStorage, ptr_frameInfo, index);
+			}
+		}
+
+		strcpy(NewShareObj->name, shareName);
+		NewShareObj->ownerID = ownerID;
+		NewShareObj->size = size;
+		NewShareObj->references = 1;
+		NewShareObj->isWritable = isWritable;
+		return shareObjectID;
 
 }
 //======================
@@ -222,32 +231,27 @@ int createSharedObject(int32 ownerID, char* shareName, uint32 size, uint8 isWrit
 //======================
 int getSharedObject(int32 ownerID, char* shareName, void* virtual_address)
 {
-	//TODO: [PROJECT 2020 - [6] Shared Variables: Get] getSharedObject() [Kernel Side]
-	// your code is here, remove the panic and write your code
-	//panic("getSharedObject() is not implemented yet...!!");
 
-	struct Env* myenv = curenv; //The calling environment
+	struct Env* myenv = curenv;
 
-	// 	This function should share the required object in the heap of the current environment
-	//	starting from the given virtual_address with the specified permissions of the object: read_only/writable
-	// 	and return the ShareObjectID
-	// RETURN:
-	//	a) sharedObjectID (its index in the array) if success
-	//	b) E_SHARED_MEM_NOT_EXISTS if the shared object is not exists
+	int id = get_share_object_ID(ownerID, shareName);
+	if(id == E_SHARED_MEM_NOT_EXISTS)
+		return E_SHARED_MEM_NOT_EXISTS;
+	int size = getSizeOfSharedObject(ownerID, shareName);
+	int range = size/PAGE_SIZE + (size%PAGE_SIZE == 0 ? 0 : 1);
+	uint32 va = (uint32)virtual_address;
+	for (int frame_number = 0; frame_number < range; ++frame_number) {
+		map_frame(
+				myenv->env_page_directory,
+				get_frame_from_storage(shares[id].framesStorage, frame_number),
+				(void*)va,
+				PERM_USER|PERM_PRESENT|(shares[id].isWritable == 1 ? PERM_WRITEABLE : 0)
+				);
+		va += PAGE_SIZE;
+	}
+	++shares[id].references;
 
-	// Steps:
-	//	1) Get the shared object from the "shares" array (use get_share_object_ID())
-	//	2) Get its physical frames from the frames_storage
-	//		(use: get_frame_from_storage())
-	//	3) Share these frames with the current environment "myenv" starting from the given "virtual_address"
-	//  4) make sure that read-only object must be shared "read only", use the flag isWritable to make it either read-only or writable
-	//	5) Update references
-	// 	6) 	If succeed: return the ID of the shared object (i.e. its index in the "shares" array)
-	//		Else, return suitable error
-	panic("This function is not implemented yet\n");
-
-	//change this return according to your code
-	return 0;
+	return id;
 }
 
 //==================================================================================//

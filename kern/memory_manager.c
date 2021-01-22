@@ -802,14 +802,11 @@ void freeMem(struct Env* e, uint32 virtual_address, uint32 size)
 	uint32 ver =  virtual_address;
 	for(int i = 0; i < req_pages; ++i) {
 		 pf_remove_env_page(e, virtual_address);
-		for (int j =0;j<e->page_WS_max_size;j++){
-			if (ROUNDDOWN(e->ptr_pageWorkingSet[j].virtual_address,PAGE_SIZE)==virtual_address){
-				//cprintf ("page \n");
-				unmap_frame(e->env_page_directory,(void*)virtual_address);
-				env_page_ws_clear_entry(e,j);
-
-			}
-		}
+		 int permissions = pt_get_page_permissions(e, virtual_address);
+			if((permissions&PERM_PRESENT) == PERM_PRESENT){
+					unmap_frame(e->env_page_directory, (void*)virtual_address);
+					env_page_ws_invalidate(e, virtual_address);
+				}
 		virtual_address += PAGE_SIZE;
 	}
 	for(int k=0;k<req_pages;k++){
@@ -822,6 +819,7 @@ void freeMem(struct Env* e, uint32 virtual_address, uint32 size)
 	for (int i=0; i<1024;i++){
 		if ((ptr_page[i]&PERM_PRESENT)!=0){
 			count =count-1;
+			break;
 		}
 
 
@@ -831,24 +829,16 @@ void freeMem(struct Env* e, uint32 virtual_address, uint32 size)
 			if(ptr_page!=NULL){
 			//	cprintf("%x  ptr \n",ptr_page);
 				uint32 table_pa = (uint32)(ptr_page)-KERNEL_BASE;
-				//cprintf("%x  tab \n",table_pa);
 				struct Frame_Info *table_frame_info = to_frame_info(table_pa);
-				//cprintf ("table \n");
 				table_frame_info->references = 0;
 				free_frame(table_frame_info);
 				uint32 dir_index = PDX(ver);
 				e->env_page_directory[dir_index] = 0;
 
-			}}
+			}
+		}
 
 	}
-
-		//This function should:
-		//1. Free AL
-
-		//2. Free ONLY pages that are resident in the working set from the memory
-		//3. Removes ONLY the empty page tables (i.e. not used) (no pages are mapped in the table)
-
 
 }
 

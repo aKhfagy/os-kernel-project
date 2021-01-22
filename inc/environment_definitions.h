@@ -158,7 +158,7 @@ struct Env {
 
 #define LOG2NENV		10
 //#define NENV			(1 << LOG2NENV)
-#define NENV			( (PTSIZE/4) / sizeof(struct Env) )
+#define NENV			( (PTSIZE) / sizeof(struct Env) )
 #define ENVX(envid)		((envid) & (NENV - 1))
 
 #endif // !FOS_INC_ENV_H

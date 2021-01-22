@@ -67,9 +67,9 @@ _main(void)
 	*numOfFinished = 0 ;
 
 	/*[2] RUN THE SLAVES PROGRAMS*/
-	int32 envIdQuickSort = sys_create_env("slave_qs", (myEnv->page_WS_max_size) ,(myEnv->percentage_of_WS_pages_to_be_removed));
+	int32 envIdQuickSort = sys_create_env("slave_qs", (myEnv->page_WS_max_size), (myEnv->percentage_of_WS_pages_to_be_removed));
 	int32 envIdMergeSort = sys_create_env("slave_ms", (myEnv->page_WS_max_size), (myEnv->percentage_of_WS_pages_to_be_removed));
-	int32 envIdStats = sys_create_env("slave_stats", (myEnv->page_WS_max_size),(myEnv->percentage_of_WS_pages_to_be_removed));
+	int32 envIdStats = sys_create_env("slave_stats", (myEnv->page_WS_max_size), (myEnv->percentage_of_WS_pages_to_be_removed));
 	sys_run_env(envIdQuickSort);
 	sys_run_env(envIdMergeSort);
 	sys_run_env(envIdStats);

@@ -1,4 +1,3 @@
-
 #include <inc/lib.h>
 // malloc()
 //	This function use FIRST FIT strategy to allocate space in heap
@@ -26,6 +25,7 @@ struct allocated_memory {
 struct user_heap_file {
 	uint32 va;
 	uint32 used;
+	uint32 index_allocated;
 } user_heap[USER_HEAP_MEMORY_ITEMS];
 
 int is_initialized = 0;
@@ -33,11 +33,11 @@ int is_initialized = 0;
 void init() {
 	if(is_initialized == 1)
 		return;
-	//cprintf("HAHA\n");
 	uint32 va = USER_HEAP_START;
 	for(int i = 0; i < USER_HEAP_MEMORY_ITEMS; ++i) {
 		user_heap[i].va = va;
 		user_heap[i].used = 0;
+		user_heap[i].index_allocated = -1;
 		va += PAGE_SIZE;
 	}
 	is_initialized = 1;
@@ -77,9 +77,7 @@ uint32 get_address(uint32 req_pages) {
 		}
 
 		if(va != -1) {
-			for(int i = 0; i < req_pages; ++i)
-				user_heap[idx + i].used = 1;
-			return va;
+			return idx;
 		}
 	}
 	else if(sys_isUHeapPlacementStrategyNEXTFIT()) {
@@ -98,85 +96,75 @@ uint32 get_address(uint32 req_pages) {
 				freq_free = 0;
 			}
 			if(freq_free >= req_pages) {
-				//cprintf("HAHA\n");
-				for(int i = 0; i < req_pages; ++i)
-					user_heap[idx + i].used = 1;
 				++next_fit_start_idx;
 				next_fit_start_idx %= USER_HEAP_MEMORY_ITEMS;
-				return start_va;
+				return idx;
 			}
 			++next_fit_start_idx;
 			next_fit_start_idx %= USER_HEAP_MEMORY_ITEMS;
 		}
 	}
 
-	return va;
+	return -1;
+}
+
+void UH_Allocate(uint32 size, uint32 idx) {
+	int req_pages = size/PAGE_SIZE + (size%PAGE_SIZE == 0 ? 0 : 1);
+	user_heap[idx].index_allocated = number_allocated;
+	for(int i = 0; i < req_pages; ++i) {
+		user_heap[(idx + i)%USER_HEAP_MEMORY_ITEMS].used = 1;
+	}
+	allocated_array[number_allocated].va = user_heap[idx].va;
+	allocated_array[number_allocated].size = size;
+	++number_allocated;
 }
 
 void* malloc(uint32 size)
 {
-
-
 	init();
-	uint32 address = get_address(size/PAGE_SIZE + (size % PAGE_SIZE == 0 ? 0 : 1));
-
-	if(address == -1)
+	uint32 idx = get_address(size/PAGE_SIZE + (size % PAGE_SIZE == 0 ? 0 : 1));
+	if(idx == -1)
 		return (void*)NULL;
 
-	allocated_array[number_allocated].va = address;
-	allocated_array[number_allocated].size = size;
-	++number_allocated;
+	UH_Allocate(size, idx);
 
-	sys_allocateMem(address, size);
+	sys_allocateMem(user_heap[idx].va, size);
 
-	return (void*)address;
+	return (void*)user_heap[idx].va;
 }
 
 void* smalloc(char *sharedVarName, uint32 size, uint8 isWritable)
 {
-	//TODO: [PROJECT 2020 - [6] Shared Variables: Creation] smalloc() [User Side]
-	// Write your code here, remove the panic and write your code
-	panic("smalloc() is not implemented yet...!!");
+	init();
+	uint32 required_pages = ROUNDUP(size, PAGE_SIZE)/PAGE_SIZE;
+	uint32 idx = get_address(required_pages);
+	if(idx!= -1)
+	{
+		int ret = sys_createSharedObject(sharedVarName, ROUNDUP(size, PAGE_SIZE),isWritable, (void *)user_heap[idx].va );
+		if(ret != E_NO_SHARE && ret != E_SHARED_MEM_EXISTS)
+		{
+			UH_Allocate(size, idx);
+			return (void *)user_heap[idx].va;
+		}
+	}
+	return NULL;
 
-	// Steps:
-	//	1) Implement FIRST FIT strategy to search the heap for suitable space
-	//		to the required allocation size (space should be on 4 KB BOUNDARY)
-	//	2) if no suitable space found, return NULL
-	//	 Else,
-	//	3) Call sys_createSharedObject(...) to invoke the Kernel for allocation of shared variable
-	//		sys_createSharedObject(): if succeed, it returns the ID of the created variable. Else, it returns -ve
-	//	4) If the Kernel successfully creates the shared variable, return its virtual address
-	//	   Else, return NULL
-
-	//This function should find the space of the required range
-	// ******** ON 4KB BOUNDARY ******************* //
-
-	return 0;
 }
 
 void* sget(int32 ownerEnvID, char *sharedVarName)
 {
-	//TODO: [PROJECT 2020 - [6] Shared Variables: Get] sget() [User Side]
-	// Write your code here, remove the panic and write your code
-	panic("sget() is not implemented yet...!!");
-
-	// Steps:
-	//	1) Get the size of the shared variable (use sys_getSizeOfSharedObject())
-	//	2) If not exists, return NULL
-	//	3) Implement FIRST FIT strategy to search the heap for suitable space
-	//		to share the variable (should be on 4 KB BOUNDARY)
-	//	4) if no suitable space found, return NULL
-	//	 Else,
-	//	5) Call sys_getSharedObject(...) to invoke the Kernel for sharing this variable
-	//		sys_getSharedObject(): if succeed, it returns the ID of the shared variable. Else, it returns -ve
-	//	6) If the Kernel successfully share the variable, return its virtual address
-	//	   Else, return NULL
-	//
-
-	//This function should find the space for sharing the variable
-	// ******** ON 4KB BOUNDARY ******************* //
-
-	return 0;
+	init();
+	uint32 size = sys_getSizeOfSharedObject(ownerEnvID, sharedVarName);
+	if(size == E_SHARED_MEM_NOT_EXISTS)
+		return NULL;
+	uint32 idx = get_address(size/PAGE_SIZE + (size%PAGE_SIZE == 0 ? 0 : 1));
+	if(idx == -1)
+		return NULL;
+	int id = sys_getSharedObject(ownerEnvID, sharedVarName, (void*)user_heap[idx].va);
+	if(id == E_SHARED_MEM_NOT_EXISTS || id == E_NO_SHARE)
+		return NULL;
+	UH_Allocate(size, idx);
+	return (void*)user_heap[idx].va;
 }
 
 // free():
@@ -191,53 +179,22 @@ void* sget(int32 ownerEnvID, char *sharedVarName)
 
 void free(void* virtual_address)
 {
-   //cprintf("HAHA\n");
-	int s;
-	//TODO: [PROJECT 2020 - [5] User Heap] free() [User Side]
-	// Write your code here, remove the panic and write your code
+	int s = -1, idx = -1;
 	for (int i=0;i<number_allocated;i++){
 		if (allocated_array[i].va==(uint32)virtual_address){
 			s=allocated_array[i].size;
-
+			idx = i;
+			break;
 		}
 	}
-
-
-   for (int i=0;i<number_allocated;i++){
-	   if (allocated_array[i].va==(uint32)virtual_address){
-
-		   uint32 temp = allocated_array[i].va;
-		   allocated_array[i].va= allocated_array[number_allocated-1].va;
-		   allocated_array[number_allocated-1].va = temp;
-
-
-		   uint32 temp2 = allocated_array[i].size;
-				   allocated_array[i].size= allocated_array[number_allocated-1].size;
-				   allocated_array[number_allocated-1].size = temp2;
-				   number_allocated--;
-				   break;
-
-
-   }
-
-   }
-   for (int j=0;j<USER_HEAP_MEMORY_ITEMS;j++){
-
- 	   if (user_heap[j].va==(uint32)virtual_address){
- 		   int req_pages = s / PAGE_SIZE + (s % PAGE_SIZE == 0 ? 0 : 1);
- 		   for(int t = 0; t < req_pages; ++t)
- 			   user_heap[t + j].used=0;
-		  sys_freeMem((uint32)virtual_address, s);
-		  break;
- 	   		}
-
-    }
-	//you shold get the size of the given allocation using its address
-	//you need to call sys_freeMem()
-	//refer to the project presentation and documentation for details
+	allocated_array[idx] = allocated_array[--number_allocated];
+	idx = ((uint32)virtual_address - USER_HEAP_START) / PAGE_SIZE;
+	int req_pages = s / PAGE_SIZE + (s % PAGE_SIZE == 0 ? 0 : 1);
+	   for(int t = 0; t < req_pages; ++t)
+		   user_heap[t + idx].used=0;
+	   sys_freeMem((uint32)virtual_address, s);
 
 }
-
 //==================================================================================//
 //============================== BONUS FUNCTIONS ===================================//
 //==================================================================================//

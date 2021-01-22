@@ -33,7 +33,7 @@ _main(void)
 
 	//Create the 2 processes
 	int32 envIdProcessA = sys_create_env("midterm_a", (myEnv->page_WS_max_size), (myEnv->percentage_of_WS_pages_to_be_removed));
-	int32 envIdProcessB = sys_create_env("midterm_b", (myEnv->page_WS_max_size),(myEnv->percentage_of_WS_pages_to_be_removed));
+	int32 envIdProcessB = sys_create_env("midterm_b", (myEnv->page_WS_max_size), (myEnv->percentage_of_WS_pages_to_be_removed));
 
 	//Run the 2 processes
 	sys_run_env(envIdProcessA);

@@ -82,11 +82,7 @@ DECLARE_START_OF(quicksort_heap)
 //2012
 DECLARE_START_OF(fos_fibonacci)
 DECLARE_START_OF(fos_factorial)
-DECLARE_START_OF(quicksort1)
-DECLARE_START_OF(quicksort2)
-DECLARE_START_OF(quicksort3)
-DECLARE_START_OF(quicksort4)
-DECLARE_START_OF(quicksort5)
+
 DECLARE_START_OF(tst_quicksort_freeHeap)
 
 //2015
@@ -95,28 +91,19 @@ DECLARE_START_OF(tst_free_2);
 DECLARE_START_OF(tst_malloc_1);
 DECLARE_START_OF(tst_malloc_2);
 DECLARE_START_OF(tst_malloc_3);
-DECLARE_START_OF(tst_first_fit_1);
-DECLARE_START_OF(tst_first_fit_2);
-DECLARE_START_OF(heap_program);
+
 DECLARE_START_OF(tst_invalid_access);
 DECLARE_START_OF(mergesort_leakage);
 DECLARE_START_OF(mergesort_noleakage);
 DECLARE_START_OF(quicksort_noleakage);
 
-DECLARE_START_OF(tst_freeing_stack);
-DECLARE_START_OF(tst_nextfit);
+
 DECLARE_START_OF(tst_worstfit);
 
 
 
 //2018
-DECLARE_START_OF(ef_fos_fibonacci);
-DECLARE_START_OF(ef_fos_factorial);
-DECLARE_START_OF(ef_fos_add);
-DECLARE_START_OF(tst_envfree1);
-DECLARE_START_OF(ef_mergesort_noleakage);
-DECLARE_START_OF(ef_mergesort_leakage);
-DECLARE_START_OF(tst_envfree2);
+
 
 //2020
 DECLARE_START_OF(tst_page_replacement_alloc)
@@ -142,6 +129,30 @@ DECLARE_START_OF(tst_sharing_2slave1);
 DECLARE_START_OF(tst_sharing_2slave2);
 DECLARE_START_OF(tst_sharing_3);
 DECLARE_START_OF(tst_worstfit_shared);
+DECLARE_START_OF(tst_sharing_4);
+DECLARE_START_OF(tst_sharing_5_master);
+DECLARE_START_OF(tst_sharing_5_slave);
+DECLARE_START_OF(tst_sharing_5_slaveB1);
+DECLARE_START_OF(tst_sharing_5_slaveB2);
+
+DECLARE_START_OF(sc_scarceMemoryWithLargeArr)
+DECLARE_START_OF(arrayOperations_Master);
+DECLARE_START_OF(arrayOperations_quicksort);
+DECLARE_START_OF(arrayOperations_mergesort);
+DECLARE_START_OF(arrayOperations_stats);
+DECLARE_START_OF(MidTermEx_Master);
+DECLARE_START_OF(MidTermEx_ProcessA);
+DECLARE_START_OF(MidTermEx_ProcessB);
+DECLARE_START_OF(tst_air);
+DECLARE_START_OF(tst_air_clerk);
+DECLARE_START_OF(tst_air_customer);
+DECLARE_START_OF(sc_CPU_MLFQ_Master_1);
+DECLARE_START_OF(sc_CPU_MLFQ_slave_1_1);
+DECLARE_START_OF(sc_CPU_MLFQ_slave_1_2);
+DECLARE_START_OF(sc_scarceMemMaster);
+DECLARE_START_OF(sc_scarceMemLargeDynArr);
+DECLARE_START_OF(sc_scarceMemLargeStaticArr);
+
 //User Programs Table
 //The input for any PTR_START_OF macro must be the ".c" filename of the user program
 struct UserProgramInfo userPrograms[] = {
@@ -188,6 +199,11 @@ struct UserProgramInfo userPrograms[] = {
 		{ "shr2Slave2", "[Slave program2] of tst_sharing_2master", PTR_START_OF(tst_sharing_2slave2)},
 		{ "tshr3", "Tests the shared variables [Special cases of create]", PTR_START_OF(tst_sharing_3)},
 		{"twf_shr","Test the worst fit strategy for shared variables",PTR_START_OF(tst_worstfit_shared)},
+		{ "tshr4", "Tests the free of shared variables after createSharedObject only", PTR_START_OF(tst_sharing_4)},
+		{ "tshr5", "Tests the free of shared variables after both createSharedObject and getSharedObject", PTR_START_OF(tst_sharing_5_master)},
+		{ "tshr5slave", "Slave program to be used with tshr5", PTR_START_OF(tst_sharing_5_slave)},
+		{ "tshr5slaveB1", "Slave program to be used with tshr5", PTR_START_OF(tst_sharing_5_slaveB1)},
+		{ "tshr5slaveB2", "Slave program to be used with tshr5", PTR_START_OF(tst_sharing_5_slaveB2)},
 		//[2] PROGRAMS
 		{ "tqsfh", "Quicksort with freeHeap", PTR_START_OF(tst_quicksort_freeHeap)},
 		{ "fact", "Factorial Recursive", PTR_START_OF(fos_factorial)},
@@ -197,27 +213,31 @@ struct UserProgramInfo userPrograms[] = {
 		{ "ms1", "Mergesort with NO memory leakage", PTR_START_OF(mergesort_noleakage)},
 		{ "ms2", "Mergesort that cause memory leakage", PTR_START_OF(mergesort_leakage)},
 
-		//[3] BONUSES
-		{ "tnf", "tests next fit: all cases", PTR_START_OF(tst_nextfit)},
-		{ "tfs", "Tests freeing the unused stack pages", PTR_START_OF(tst_freeing_stack)},
-		{ "ef_fib", "", PTR_START_OF(ef_fos_fibonacci)},
-		{ "ef_fact", "", PTR_START_OF(ef_fos_factorial)},
-		{ "ef_fos_add", "", PTR_START_OF(ef_fos_add)},
-		{ "tef1", "", PTR_START_OF(tst_envfree1)},
-		{ "ef_ms1", "", PTR_START_OF(ef_mergesort_noleakage)},
-		{ "ef_ms2", "", PTR_START_OF(ef_mergesort_leakage)},
-		{ "tef2", "", PTR_START_OF(tst_envfree2)},
 
-		/*TESTING 2016*/
-		{ "hp", "heap program (allocate and free from heap)", PTR_START_OF(heap_program)},
 
-		//[2] PROGRAMS
-		//		{ "tqsfh", "Quicksort with freeHeap", PTR_START_OF(tst_quicksort_freeHeap)},
-		{ "qs1", "Quicksort v.1", PTR_START_OF(quicksort1)},
-		{ "qs2", "Quicksort v.2", PTR_START_OF(quicksort2)},
-		{ "qs3", "Quicksort v.3", PTR_START_OF(quicksort3)},
-		{ "qs4", "Quicksort v.4", PTR_START_OF(quicksort4)},
-		{ "qs5", "Quicksort v.5", PTR_START_OF(quicksort5)},
+
+		{ "arrop", "Apply set of array operations: scenario program to test shared objects", PTR_START_OF(arrayOperations_Master)},
+		{ "slave_qs", "SlaveOperation: quicksort", PTR_START_OF(arrayOperations_quicksort)},
+		{ "slave_ms", "SlaveOperation: mergesort", PTR_START_OF(arrayOperations_mergesort)},
+		{ "slave_stats", "SlaveOperation: stats", PTR_START_OF(arrayOperations_stats)},
+
+		{ "tair", "", PTR_START_OF(tst_air)},
+		{ "taircl", "", PTR_START_OF(tst_air_clerk)},
+		{ "taircu", "", PTR_START_OF(tst_air_customer)},
+
+		{ "midterm", "Midterm 2017: Example on shared resource and dependency", PTR_START_OF(MidTermEx_Master)},
+		{ "midterm_a", "Midterm 2017 Example: Process A", PTR_START_OF(MidTermEx_ProcessA)},
+		{ "midterm_b", "Midterm 2017 Example: Process B", PTR_START_OF(MidTermEx_ProcessB)},
+
+		{ "tmlfq", "[Master program] of MLFQ Scenario", PTR_START_OF(sc_CPU_MLFQ_Master_1)},
+		{ "tmlfq_1", "[Slave program1] of MLFQ Scenario", PTR_START_OF(sc_CPU_MLFQ_slave_1_1)},
+		{ "tmlfq_2", "[Slave program2] of MLFQ Scenario", PTR_START_OF(sc_CPU_MLFQ_slave_1_2)},
+		{ "tscarcemem", "Tests of SCARCE MEMORY Scenario", PTR_START_OF(sc_scarceMemoryWithLargeArr)},
+
+
+		{ "tscarceMaster", "Tests of SCARCE MEMORY Scenario [Master]", PTR_START_OF(sc_scarceMemMaster)},
+		{ "tscarceSlave1", "Tests of SCARCE MEMORY Scenario [Slave1]", PTR_START_OF(sc_scarceMemLargeDynArr)},
+		{ "tscarceSlave2", "Tests of SCARCE MEMORY Scenario [Slave2]", PTR_START_OF(sc_scarceMemLargeStaticArr)},
 
 };
 

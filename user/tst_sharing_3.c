@@ -28,6 +28,7 @@ _main(void)
 		//int ret = sys_createSharedObject("x", PAGE_SIZE, 1, (void*)&x);
 		x = smalloc("x", PAGE_SIZE, 1);
 		int freeFrames = sys_calculate_free_frames() ;
+		//cprintf("HEHE");
 		x = smalloc("x", PAGE_SIZE, 1);
 		if (x != NULL) panic("Trying to create an already exists object and corresponding error is not returned!!");
 		if ((freeFrames - sys_calculate_free_frames()) !=  0) panic("Wrong allocation: make sure that you don't allocate any memory if the shared object exists");
